@@ -102,7 +102,7 @@ const pointsToNextTier = computed(() => {
     <!-- Tier Benefits -->
     <div class="bg-cream rounded-2xl p-4">
       <h4 class="font-semibold text-dark mb-3 flex items-center gap-2">
-        <Award :size="18} />
+        <Award :size="18" />
         สิทธิพิเศษของระดับคุณ
       </h4>
       <ul class="space-y-2 text-sm text-gray-700">
