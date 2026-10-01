@@ -43,7 +43,8 @@ const handleAvatarError = (event: Event) => {
 
 const navItems = [
   { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/admin/applications', label: 'ใบสมัครพาร์ทเนอร์', icon: Users },
+  { path: '/admin/users', label: 'จัดการผู้ใช้', icon: Users },
+  { path: '/admin/applications', label: 'ใบสมัครพาร์ทเนอร์', icon: UserCheck },
   { path: '/admin/lungs', label: 'จัดการลุง', icon: UserCheck },
   { path: '/admin/bookings', label: 'การจอง', icon: FileText },
   { path: '/admin/payouts', label: 'จัดการการโอนเงิน', icon: TrendingUp },

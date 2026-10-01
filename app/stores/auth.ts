@@ -15,6 +15,12 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  getDocs,
+  query,
+  orderBy,
   serverTimestamp
 } from 'firebase/firestore'
 import { getTrialStatus, initializeTrial } from '~/utils/trial'
@@ -27,6 +33,8 @@ export interface User {
   avatar: string
   role: 'user' | 'lung' | 'admin'
   trialStartedAt?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -271,6 +279,71 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Admin: Get all users
+  const getAllUsers = async () => {
+    if (!process.client) return []
+
+    try {
+      const db = getFirestore()
+      const usersRef = collection(db, 'users')
+      const q = query(usersRef, orderBy('createdAt', 'desc'))
+      const querySnapshot = await getDocs(q)
+
+      const users: User[] = []
+      querySnapshot.forEach((doc) => {
+        users.push({
+          id: doc.id,
+          ...doc.data()
+        } as User)
+      })
+
+      return users
+    } catch (error) {
+      console.error('Get all users error:', error)
+      throw error
+    }
+  }
+
+  // Admin: Update user profile (name, role, avatar)
+  const updateUserProfile = async (userId: string, updates: Partial<User>) => {
+    if (!process.client) return
+
+    try {
+      const db = getFirestore()
+      const userRef = doc(db, 'users', userId)
+
+      await updateDoc(userRef, {
+        ...updates,
+        updatedAt: new Date().toISOString()
+      })
+
+      // Update local user if it's the current user
+      if (user.value?.id === userId) {
+        user.value = { ...user.value, ...updates }
+      }
+    } catch (error) {
+      console.error('Update user profile error:', error)
+      throw error
+    }
+  }
+
+  // Admin: Delete user from Firestore
+  // Note: This only deletes from Firestore, not Firebase Auth
+  // Firebase Auth deletion requires Admin SDK on backend
+  const deleteUser = async (userId: string) => {
+    if (!process.client) return
+
+    try {
+      const db = getFirestore()
+      const userRef = doc(db, 'users', userId)
+
+      await deleteDoc(userRef)
+    } catch (error) {
+      console.error('Delete user error:', error)
+      throw error
+    }
+  }
+
   return {
     user,
     firebaseUser,
@@ -283,5 +356,8 @@ export const useAuthStore = defineStore('auth', () => {
     signInWithGoogle,
     handleRedirectResult,
     logout,
+    getAllUsers,
+    updateUserProfile,
+    deleteUser,
   }
 })
