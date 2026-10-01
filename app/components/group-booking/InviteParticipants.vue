@@ -128,7 +128,7 @@ async function shareViaLINE() {
         @click="shareViaEmail"
         class="w-full flex items-center gap-3 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-dark rounded-xl transition-colors"
       >
-        <Mail :size="20} />
+        <Mail :size="20" />
         <span class="font-medium">ส่งทางอีเมล</span>
       </button>
 
