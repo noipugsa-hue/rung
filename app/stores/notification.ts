@@ -9,8 +9,7 @@ import {
   where,
   orderBy,
   onSnapshot,
-  writeBatch,
-  type Unsubscribe
+  writeBatch
 } from 'firebase/firestore'
 import type { Notification, CreateNotificationInput } from '~/types/notification'
 import { generateId } from '~/utils/id-generator'
@@ -20,7 +19,7 @@ export const useNotificationStore = defineStore('notification', () => {
   const unreadCount = ref(0)
   const loading = ref(false)
   const error = ref<string | null>(null)
-  let unsubscribe: Unsubscribe | null = null
+  let unsubscribe: (() => void) | null = null
 
   // Get Firestore instance
   const getFirestore = () => {
@@ -122,7 +121,7 @@ export const useNotificationStore = defineStore('notification', () => {
   /**
    * Subscribe to real-time notifications
    */
-  function subscribeToNotifications(userId: string): Unsubscribe | null {
+  function subscribeToNotifications(userId: string): (() => void) | null {
     if (!process.client) return null
 
     try {

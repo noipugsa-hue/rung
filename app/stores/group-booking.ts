@@ -9,8 +9,7 @@ import {
   query,
   where,
   orderBy,
-  onSnapshot,
-  Unsubscribe
+  onSnapshot
 } from 'firebase/firestore'
 import type { GroupBooking, GroupParticipant, CreateGroupBookingInput } from '~/types/group-booking'
 import { generateId } from '~/utils/id-generator'
