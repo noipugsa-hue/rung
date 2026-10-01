@@ -10,6 +10,7 @@ import {
 } from 'lucide-vue-next'
 import { useLungStore } from '~/stores/lung'
 import { useFavoritesStore } from '~/stores/favorites'
+import { formatBaht } from '~/utils/money'
 
 definePageMeta({
   layout: 'default'
@@ -28,6 +29,39 @@ onMounted(() => {
 
 const lung = computed(() => lungStore.currentLung)
 const isFavorited = computed(() => lung.value ? favoritesStore.isFavorite(lung.value.id) : false)
+
+// Dynamic SEO based on lung data
+const { setSeo, getPersonSchema, getBreadcrumbSchema } = useSeo()
+
+watch(lung, (newLung) => {
+  if (newLung) {
+    setSeo({
+      title: `เช่าลุง ${newLung.name} - ${newLung.categories[0]} | LUNG`,
+      description: `จองลุง ${newLung.name} อายุ ${newLung.age} ปี จาก ${newLung.location} สำหรับ ${newLung.categories.join(', ')} ${newLung.bio.substring(0, 100)}... ราคา ${formatBaht(newLung.pricePerHour)} ต่อชั่วโมง`,
+      keywords: [
+        'เช่าลุง',
+        `เช่าลุง${newLung.location}`,
+        ...newLung.categories.map(cat => `หาคน${cat}`),
+        newLung.name,
+        'จองลุง',
+        'ลุงเช่า'
+      ],
+      image: newLung.gallery[0],
+      type: 'article',
+      structuredData: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          getPersonSchema(newLung),
+          getBreadcrumbSchema([
+            { name: 'หน้าแรก', url: '/' },
+            { name: 'ค้นหาลุง', url: '/search' },
+            { name: newLung.name }
+          ])
+        ]
+      }
+    })
+  }
+}, { immediate: true })
 
 const toggleFavorite = () => {
   if (lung.value) {

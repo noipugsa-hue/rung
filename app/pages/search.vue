@@ -7,6 +7,28 @@ definePageMeta({
   layout: 'default'
 })
 
+// SEO
+const { setSeo, getBreadcrumbSchema } = useSeo()
+setSeo({
+  title: 'ค้นหาลุง - เช่าลุง หาคนไปด้วย | LUNG',
+  description: 'ค้นหาและเช่าลุง หาคนไปกินข้าว เที่ยว คาเฟ่ คุยเล่น จากทั่วประเทศไทย กรองตามกิจกรรม ราคา สถานที่ และเวลาว่าง จองได้ทันที',
+  keywords: [
+    'เช่าลุง',
+    'ลุงเช่า',
+    'หาคนไปด้วย',
+    'หาเพื่อนไปเที่ยว',
+    'หาคนกินข้าว',
+    'หาคนไปคาเฟ่',
+    'ค้นหาลุง',
+    'จองลุง',
+    'บริการหาเพื่อน'
+  ],
+  structuredData: getBreadcrumbSchema([
+    { name: 'หน้าแรก', url: '/' },
+    { name: 'ค้นหาลุง' }
+  ])
+})
+
 const route = useRoute()
 
 let lungStore: ReturnType<typeof useLungStore> | null = null

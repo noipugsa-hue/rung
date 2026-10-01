@@ -9,6 +9,47 @@ definePageMeta({
   layout: 'default'
 })
 
+// SEO
+const { setSeo, getOrganizationSchema, getWebsiteSchema, getServiceSchema, getBreadcrumbSchema } = useSeo()
+
+// Combined structured data
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    getOrganizationSchema(),
+    getWebsiteSchema(),
+    getServiceSchema(),
+    getBreadcrumbSchema([
+      { name: 'หน้าแรก' }
+    ])
+  ]
+}
+
+setSeo({
+  title: 'LUNG — เช่าลุง หาคนไปด้วย บริการหาเพื่อนทำกิจกรรม | ทดลองฟรี 7 วัน',
+  description: 'แพลตฟอร์มเช่าลุง ลุงเช่า หาคนไปด้วยในกิจกรรมต่างๆ เช่น กินข้าว เที่ยว คาเฟ่ คุยเล่น จองได้ง่ายๆ ราคาเริ่มต้น 200 บาท ทดลองฟรี 7 วัน ลด 50%',
+  keywords: [
+    'เช่าลุง',
+    'ลุงเช่า',
+    'หาคนไปด้วย',
+    'หาเพื่อนไปเที่ยว',
+    'หาคนกินข้าว',
+    'หาคนไปคาเฟ่',
+    'บริการหาเพื่อน',
+    'คนเช่า',
+    'หาเพื่อนคุย',
+    'ไปไหนด้วยกัน',
+    'หาคนไปเดินเล่น',
+    'ใครสักคนไปด้วย',
+    'lung',
+    'บริการหาเพื่อนทำกิจกรรม',
+    'เช่าคนไปด้วย',
+    'หาเพื่อนใหม่',
+    'คนเช่าไปเที่ยว'
+  ],
+  structuredData
+})
+
 // Client-only store - avoid SSR issues
 let lungStore: ReturnType<typeof useLungStore> | null = null
 let authStore: ReturnType<typeof useAuthStore> | null = null
@@ -70,8 +111,8 @@ const showTrialPromotion = computed(() => {
                 <span class="block gradient-text">ใครสักคนไปด้วย</span>
               </h1>
               <p class="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-xl leading-relaxed animate-fade-in-up animation-delay-100">
-                กินข้าวด้วยกัน เดินเล่น เที่ยว คาเฟ่<br class="hidden sm:inline" />
-                หรือแค่มีใครสักคนไว้พูดคุย
+                เช่าลุง หาคนไปด้วยในกิจกรรมต่างๆ<br class="hidden sm:inline" />
+                กินข้าว เดินเล่น เที่ยว คาเฟ่ หรือแค่พูดคุย
               </p>
             </div>
 
@@ -262,7 +303,7 @@ const showTrialPromotion = computed(() => {
             วันนี้มีลุงคนไหนว่างบ้าง?
           </h2>
           <p class="text-base md:text-lg text-gray-600">
-            คนที่พร้อมไปกับคุณวันนี้
+            ลุงเช่า คนที่พร้อมไปกินข้าว เที่ยว คาเฟ่ กับคุณวันนี้
           </p>
         </div>
 
@@ -285,10 +326,10 @@ const showTrialPromotion = computed(() => {
       <div class="container-lung">
         <div class="text-center mb-12 md:mb-16">
           <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-dark mb-3 md:mb-4">
-            ใช้งานง่ายแค่ 3 ขั้นตอน
+            เช่าลุง หาคนไปด้วย ง่ายแค่ 3 ขั้นตอน
           </h2>
           <p class="text-base md:text-lg text-gray-600">
-            เริ่มต้นใช้งาน LUNG ได้ภายในไม่กี่นาที
+            จองลุงออนไลน์ หาเพื่อนไปกินข้าว เที่ยว คาเฟ่ ได้ภายในไม่กี่นาที
           </p>
         </div>
 

@@ -1,2 +1,29 @@
-User-Agent: *
-Disallow:
+# robots.txt for LUNG - เช่าลุง หาคนไปด้วย
+
+User-agent: *
+Allow: /
+Allow: /search
+Allow: /lung/*
+Allow: /become-lung
+Allow: /group-booking/join
+
+# Disallow private pages
+Disallow: /account/*
+Disallow: /partner/*
+Disallow: /admin/*
+Disallow: /booking/*
+Disallow: /checkout
+Disallow: /messages
+Disallow: /favorites
+Disallow: /notifications
+Disallow: /apply/*
+
+# Allow crawling of authentication pages (for discoverability)
+Allow: /login
+Allow: /register
+
+# Sitemap location
+Sitemap: https://lung.app/sitemap.xml
+
+# Crawl delay (optional - be nice to servers)
+Crawl-delay: 1
