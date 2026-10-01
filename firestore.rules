@@ -1,0 +1,181 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function
+    function isAdmin() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Lungs collection
+    match /lungs/{lungId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
+    }
+
+    // Bookings collection
+    match /bookings/{bookingId} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.userId ||
+         request.auth.uid == resource.data.lungId ||
+         isAdmin());
+      allow create: if request.auth != null;
+      allow update: if request.auth != null &&
+        (request.auth.uid == resource.data.userId ||
+         request.auth.uid == resource.data.lungId ||
+         isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Partner Applications
+    match /partnerApplications/{applicationId} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if request.auth != null;
+      allow update: if request.auth != null &&
+        (request.auth.uid == resource.data.userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Admin collections
+    match /payouts/{payoutId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /commissionSettings/{settingId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /ledger/{entryId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Commission Rates
+    match /commissionRates/{rateId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Reviews collection (Phase 1)
+    match /reviews/{reviewId} {
+      allow read: if resource.data.isVisible == true;
+      allow create: if request.auth != null &&
+        request.resource.data.reviewerId == request.auth.uid &&
+        request.resource.data.isVisible == true;
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // Notifications collection (Phase 1)
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasOnly(['read', 'readAt']);
+      allow delete: if false;
+    }
+
+    // Referrals collection (Quick Wins)
+    match /referrals/{referralId} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.referrerId ||
+         request.auth.uid == resource.data.refereeId ||
+         isAdmin());
+      allow create: if request.auth != null;
+      allow update: if request.auth != null &&
+        (request.auth.uid == resource.data.referrerId ||
+         request.auth.uid == resource.data.refereeId ||
+         isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Referral Settings (Quick Wins)
+    match /referralSettings/{settingsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // User Achievements (Quick Wins)
+    match /userAchievements/{achievementId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null &&
+        (achievementId.matches('^' + request.auth.uid + '_.*') || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // User Points (Quick Wins)
+    match /userPoints/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null &&
+        (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Point Transactions (Quick Wins)
+    match /pointTransactions/{transactionId} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
+    }
+
+    // Group Bookings (Quick Wins) - FIXED
+    match /groupBookings/{groupBookingId} {
+      // Helper function to check if user is participant
+      function isParticipant() {
+        return request.auth.uid in resource.data.participantIds;
+      }
+
+      // Read: public if isPublic, or if user is organizer or participant
+      allow read: if resource.data.isPublic == true ||
+        (request.auth != null &&
+         (request.auth.uid == resource.data.organizerId ||
+          isParticipant()));
+
+      // Create: authenticated users only
+      allow create: if request.auth != null &&
+        request.resource.data.organizerId == request.auth.uid;
+
+      // Update: organizer or participants (for payment status)
+      allow update: if request.auth != null &&
+        (request.auth.uid == resource.data.organizerId ||
+         isParticipant() ||
+         isAdmin());
+
+      // Delete: organizer only or admin
+      allow delete: if request.auth != null &&
+        (request.auth.uid == resource.data.organizerId || isAdmin());
+    }
+
+    // Featured Items (Quick Wins)
+    match /featuredItems/{featuredId} {
+      // Read: everyone can see active featured items
+      allow read: if true;
+
+      // Create: admin only
+      allow create: if isAdmin();
+
+      // Update: admin only
+      allow update: if isAdmin();
+
+      // Delete: admin only
+      allow delete: if isAdmin();
+    }
+  }
+}
