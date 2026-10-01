@@ -17,6 +17,9 @@ export interface Lung {
   reviews: Review[]
   availability: AvailabilitySlot[]
   gallery: string[]
+
+  // Trial system (7-day free trial: 0% commission)
+  trialStartedAt?: string
 }
 
 export interface Review {
@@ -57,6 +60,11 @@ export interface Booking {
   commissionSnapshot: import('./commission').CommissionSnapshot
   partnerEarningSatang: import('./money').Satang
 
+  // Trial discount tracking
+  userTrialDiscountSatang?: import('./money').Satang
+  isUserTrial?: boolean
+  isLungTrial?: boolean
+
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'refunded'
 
   // Payment tracking
@@ -80,6 +88,9 @@ export interface User {
   phone: string
   favorites: string[]
   bookings: string[]
+
+  // Trial system (7-day free trial: 50% discount)
+  trialStartedAt?: string
 }
 
 export interface Message {

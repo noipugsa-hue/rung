@@ -3,6 +3,7 @@ import { collection, doc, setDoc, updateDoc, getDocs, getDoc, query, orderBy } f
 import type { Lung } from '~/types'
 import type { PartnerApplication } from '~/types/application'
 import { generateId } from '~/utils/id-generator'
+import { initializeTrial } from '~/utils/trial'
 
 export const useLungStore = defineStore('lung', () => {
   const lungs = ref<Lung[]>([])
@@ -161,7 +162,7 @@ export const useLungStore = defineStore('lung', () => {
         })
         .map(img => img.url) || []
 
-      // 3. Create Lung profile
+      // 3. Create Lung profile with 7-day trial (0% commission)
       const lungId = generateId('LUNG')
       const lungProfile: Lung = {
         id: lungId,
@@ -180,7 +181,8 @@ export const useLungStore = defineStore('lung', () => {
         available: true,
         reviews: [],
         availability: [],
-        gallery: gallery
+        gallery: gallery,
+        trialStartedAt: initializeTrial() // Start 7-day trial with 0% commission
       }
 
       // 4. Save to Firestore

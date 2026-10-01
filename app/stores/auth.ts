@@ -17,6 +17,8 @@ import {
   setDoc,
   serverTimestamp
 } from 'firebase/firestore'
+import { getTrialStatus, initializeTrial } from '~/utils/trial'
+import type { TrialStatus } from '~/types/trial'
 
 export interface User {
   id: string
@@ -24,6 +26,7 @@ export interface User {
   email: string
   avatar: string
   role: 'user' | 'lung' | 'admin'
+  trialStartedAt?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -32,6 +35,12 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => user.value !== null)
   const loading = ref(false)
   const initialized = ref(false)
+
+  // Trial status for current user (50% discount for 7 days)
+  const userTrialStatus = computed<TrialStatus | null>(() => {
+    if (!user.value) return null
+    return getTrialStatus(user.value.trialStartedAt)
+  })
 
   // Get Firebase instances
   const getFirebaseAuth = () => {
@@ -62,10 +71,11 @@ export const useAuthStore = defineStore('auth', () => {
           name: userData.name || fbUser.displayName || 'ผู้ใช้',
           email: userData.email || fbUser.email || '',
           avatar,
-          role: userData.role || 'user'
+          role: userData.role || 'user',
+          trialStartedAt: userData.trialStartedAt
         } as User
       } else {
-        // Create new user document
+        // Create new user document with 7-day trial
         const userName = fbUser.displayName || 'ผู้ใช้'
         const defaultAvatar = fbUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=FFDBB5&color=FF6B35&size=150`
 
@@ -75,6 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
           email: fbUser.email || '',
           avatar: defaultAvatar,
           role,
+          trialStartedAt: initializeTrial(), // Start 7-day trial
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }
@@ -265,6 +276,7 @@ export const useAuthStore = defineStore('auth', () => {
     firebaseUser,
     isAuthenticated,
     loading,
+    userTrialStatus,
     initAuth,
     login,
     register,

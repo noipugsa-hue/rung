@@ -15,6 +15,7 @@ import type { Booking } from '~/types'
 import type { Satang } from '~/types/money'
 import { calculateBookingCommission, createCommissionSnapshot } from '~/utils/commission'
 import { generateId } from '~/utils/id-generator'
+import { calculateUserTrialDiscount, isTrialActive } from '~/utils/trial'
 
 export const useBookingStore = defineStore('booking', () => {
   const bookings = ref<Booking[]>([])
@@ -39,6 +40,8 @@ export const useBookingStore = defineStore('booking', () => {
     hourlyRateSatang: Satang
     commissionPercent: number
     paymentMethod: string
+    userTrialStartedAt?: string
+    lungTrialStartedAt?: string
   }): Promise<Booking> {
     loading.value = true
     error.value = null
@@ -49,6 +52,13 @@ export const useBookingStore = defineStore('booking', () => {
         params.duration,
         params.commissionPercent
       )
+
+      // Calculate user trial discount (50% off during trial)
+      const userTrialDiscount = calculateUserTrialDiscount(
+        calculation.totalSatang,
+        params.userTrialStartedAt
+      )
+      const finalTotal = calculation.totalSatang - userTrialDiscount
 
       const bookingId = generateId('LUNG')
 
@@ -61,9 +71,12 @@ export const useBookingStore = defineStore('booking', () => {
         duration: params.duration,
         location: params.location,
         activity: params.activity,
-        totalAmountSatang: calculation.totalSatang,
+        totalAmountSatang: finalTotal,
         commissionSnapshot: createCommissionSnapshot(bookingId, calculation),
         partnerEarningSatang: calculation.partnerEarningSatang,
+        userTrialDiscountSatang: userTrialDiscount > 0 ? userTrialDiscount : undefined,
+        isUserTrial: isTrialActive(params.userTrialStartedAt),
+        isLungTrial: isTrialActive(params.lungTrialStartedAt),
         status: 'pending',
         paymentMethod: params.paymentMethod as 'promptpay' | 'credit' | 'cash',
         paymentStatus: 'unpaid',

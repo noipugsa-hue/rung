@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore'
 import type { CommissionRate } from '~/types/commission'
 import { generateId } from '~/utils/id-generator'
+import { getLungCommissionPercentage } from '~/utils/trial'
 
 export const useCommissionStore = defineStore('commission', () => {
   const rates = ref<CommissionRate[]>([])
@@ -36,7 +37,7 @@ export const useCommissionStore = defineStore('commission', () => {
     globalRate.value = 15
   }
 
-  function getActiveRateForPartner(partnerId: string): number {
+  function getActiveRateForPartner(partnerId: string, lungTrialStartedAt?: string): number {
     const now = new Date().toISOString()
 
     // Check partner-specific rate first
@@ -49,18 +50,18 @@ export const useCommissionStore = defineStore('commission', () => {
       )
       .sort((a, b) => b.effectiveFrom.localeCompare(a.effectiveFrom))[0]
 
-    if (partnerRate) return partnerRate.percentage
+    const normalRate = partnerRate?.percentage ||
+      rates.value
+        .filter(r =>
+          r.type === 'global' &&
+          r.effectiveFrom <= now &&
+          (!r.effectiveTo || r.effectiveTo > now)
+        )
+        .sort((a, b) => b.effectiveFrom.localeCompare(a.effectiveFrom))[0]?.percentage ||
+      globalRate.value
 
-    // Fall back to global rate
-    const activeGlobalRate = rates.value
-      .filter(r =>
-        r.type === 'global' &&
-        r.effectiveFrom <= now &&
-        (!r.effectiveTo || r.effectiveTo > now)
-      )
-      .sort((a, b) => b.effectiveFrom.localeCompare(a.effectiveFrom))[0]
-
-    return activeGlobalRate?.percentage || globalRate.value
+    // Apply trial discount (0% commission during 7-day trial)
+    return getLungCommissionPercentage(normalRate, lungTrialStartedAt)
   }
 
   // Fetch rates from Firestore
