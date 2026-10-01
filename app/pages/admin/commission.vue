@@ -5,7 +5,7 @@ import { useAuthStore } from '~/stores/auth'
 import type { CommissionRate } from '~/types/commission'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: 'admin',
   layout: 'admin'
 })
 

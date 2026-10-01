@@ -5,7 +5,7 @@ import { formatBaht } from '~/utils/money'
 import type { LedgerEntryType, LedgerEntryStatus } from '~/types/ledger'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: 'admin',
   layout: 'admin'
 })
 

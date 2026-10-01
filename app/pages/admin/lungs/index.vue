@@ -4,7 +4,7 @@ import { useLungStore } from '~/stores/lung'
 import type { Lung } from '~/types'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: 'admin',
   layout: 'admin'
 })
 

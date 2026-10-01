@@ -4,7 +4,7 @@ import { useFeaturedStore } from '~/stores/featured'
 import type { FeaturedItem } from '~/types/featured'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: 'admin',
   layout: 'admin'
 })
 

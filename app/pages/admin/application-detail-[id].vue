@@ -6,7 +6,7 @@ import { useAuthStore } from '~/stores/auth'
 import type { ApplicationStatus, PartnerApplication } from '~/types/application'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: 'admin',
   layout: 'admin'
 })
 

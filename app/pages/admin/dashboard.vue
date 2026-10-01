@@ -12,7 +12,7 @@ import { usePartnerApplicationStore } from '~/stores/partnerApplication'
 import type { PartnerApplication } from '~/types/application'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: 'admin',
   layout: 'admin'
 })
 

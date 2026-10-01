@@ -6,7 +6,7 @@ import { formatBaht } from '~/utils/money'
 import type { PayoutStatus, PayoutRequest } from '~/types/payout'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: 'admin',
   layout: 'admin'
 })
 

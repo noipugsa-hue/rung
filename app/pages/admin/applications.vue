@@ -4,7 +4,7 @@ import { usePartnerApplicationStore } from '~/stores/partnerApplication'
 import type { ApplicationStatus } from '~/types/application'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: 'admin',
   layout: 'admin'
 })
 

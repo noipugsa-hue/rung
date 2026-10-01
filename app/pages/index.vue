@@ -2,6 +2,8 @@
 import { ArrowRight, Sparkles, CheckCircle2 } from 'lucide-vue-next'
 import { categories } from '~/data/categories'
 import { useLungStore } from '~/stores/lung'
+import { useAuthStore } from '~/stores/auth'
+import { getTrialStatus } from '~/utils/trial'
 
 definePageMeta({
   layout: 'default'
@@ -9,6 +11,7 @@ definePageMeta({
 
 // Client-only store - avoid SSR issues
 let lungStore: ReturnType<typeof useLungStore> | null = null
+let authStore: ReturnType<typeof useAuthStore> | null = null
 const isClient = ref(false)
 const availableLungs = ref([])
 const featuredLungs = ref([])
@@ -17,6 +20,7 @@ const loading = ref(false)
 onMounted(() => {
   isClient.value = true
   lungStore = useLungStore()
+  authStore = useAuthStore()
   lungStore.fetchLungs()
 })
 
@@ -30,6 +34,20 @@ watch(() => lungStore?.lungs || [], (lungs) => {
 
 watch(() => lungStore?.loading || false, (newLoading) => {
   loading.value = newLoading
+})
+
+// Check if trial promotion should be shown
+const showTrialPromotion = computed(() => {
+  if (!isClient.value || !authStore) return true // Show to guests
+
+  const user = authStore.user
+  if (!user) return true // Show to non-logged-in users
+
+  // If user is logged in, check trial status
+  const trialStatus = getTrialStatus(user.trialStartedAt)
+
+  // Show only if trial is still active OR user never had a trial
+  return !user.trialStartedAt || (trialStatus && trialStatus.isActive)
 })
 </script>
 
@@ -132,6 +150,81 @@ watch(() => lungStore?.loading || false, (newLoading) => {
       <div class="container-lung">
         <div class="max-w-5xl mx-auto -mt-32 relative z-20">
           <SearchCard />
+        </div>
+      </div>
+    </section>
+
+    <!-- Free Trial Promotion Section -->
+    <section v-if="showTrialPromotion" class="py-16 md:py-20 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+      <div class="container-lung">
+        <div class="max-w-4xl mx-auto">
+          <div class="relative bg-gradient-to-r from-green-500 to-emerald-600 rounded-lung-xl p-8 md:p-12 lg:p-16 shadow-lung-xl overflow-hidden">
+            <!-- Decorative elements -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+
+            <div class="relative z-10 text-center space-y-6">
+              <!-- Badge -->
+              <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-white font-semibold text-sm border border-white/30">
+                <Sparkles :size="18" class="animate-spin" style="animation-duration: 3s;" />
+                <span>โปรโมชั่นพิเศษ</span>
+              </div>
+
+              <!-- Main heading -->
+              <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                ทดลองใช้ฟรี 7 วัน
+              </h2>
+
+              <!-- Benefits -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                <!-- User benefit -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-lung-lg p-6 border border-white/20">
+                  <div class="text-4xl mb-3">🎉</div>
+                  <h3 class="text-xl font-bold text-white mb-2">สำหรับผู้ใช้ใหม่</h3>
+                  <p class="text-white/90 text-sm mb-2">ลดทันที</p>
+                  <div class="text-4xl font-bold text-white">50%</div>
+                  <p class="text-white/80 text-sm mt-2">สำหรับทุกการจอง</p>
+                </div>
+
+                <!-- Lung benefit -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-lung-lg p-6 border border-white/20">
+                  <div class="text-4xl mb-3">🎁</div>
+                  <h3 class="text-xl font-bold text-white mb-2">สำหรับลุงใหม่</h3>
+                  <p class="text-white/90 text-sm mb-2">ค่าคอมมิชชั่น</p>
+                  <div class="text-4xl font-bold text-white">0%</div>
+                  <p class="text-white/80 text-sm mt-2">รับเงินเต็มจำนวน</p>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <p class="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
+                เริ่มต้นใช้งาน LUNG วันนี้และรับสิทธิพิเศษ<br class="hidden sm:inline" />
+                สำหรับ 7 วันแรกโดยอัตโนมัติ
+              </p>
+
+              <!-- CTAs -->
+              <div class="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                <NuxtLink
+                  to="/register"
+                  class="btn-secondary inline-flex items-center justify-center gap-2 text-base md:text-lg px-8 py-4 shadow-lung-lg hover:shadow-lung-xl"
+                >
+                  สมัครสมาชิก - รับสิทธิทันที
+                  <ArrowRight :size="20" />
+                </NuxtLink>
+                <NuxtLink
+                  to="/become-lung"
+                  class="bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm border-2 border-white/30 rounded-lung inline-flex items-center justify-center gap-2 text-base md:text-lg px-8 py-4 transition-all duration-300 font-semibold"
+                >
+                  สมัครเป็นลุง
+                </NuxtLink>
+              </div>
+
+              <!-- Fine print -->
+              <p class="text-sm text-white/70 pt-4">
+                * โปรโมชั่นมีผลทันทีหลังสมัครสมาชิกและใช้ได้เป็นเวลา 7 วัน
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>

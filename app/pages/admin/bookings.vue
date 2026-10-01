@@ -6,7 +6,7 @@ import { formatBaht } from '~/utils/money'
 import type { Booking } from '~/types'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: 'admin',
   layout: 'admin'
 })
 

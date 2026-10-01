@@ -248,6 +248,44 @@ Multi-person bookings with split payment functionality.
 - `custom` - Custom amounts per participant
 - `organizer_pays` - Organizer covers all costs
 
+### 7-Day Free Trial
+
+New user onboarding system with automatic trial benefits.
+
+- **Types**: `app/types/trial.ts` - `TrialStatus`, `UserTrialBenefit`, `LungTrialBenefit`
+- **Utils**: `app/utils/trial.ts` - Trial calculation and status functions
+- **Components**:
+  - `TrialBadge` - Animated badge showing trial status
+  - `TrialCountdown` - Countdown display with days remaining
+  - `TrialDiscountDisplay` - Checkout discount breakdown
+- **Homepage**: Free Trial Promotion section displays benefits prominently
+
+**Trial Benefits**:
+- **Users**: 50% discount on all bookings for 7 days
+- **Lungs**: 0% commission (no platform fee) for 7 days
+- **Duration**: 7 days from account creation
+- **Auto-start**: Trial begins automatically upon user/lung registration
+
+**Implementation**:
+- Trial start date stored in user/lung profile (`trialStartedAt` field)
+- Discount/commission calculated in booking creation
+- Used in: booking system, checkout, ledger entries
+- Benefits shown in: homepage, checkout, partner dashboard
+
+**Homepage Promotion Display Logic**:
+- **Shown to**: Guests (not logged in), users with active trial, users who never had trial
+- **Hidden from**: Users whose trial has expired (>7 days)
+- **Smart visibility**: Automatically hides after trial expires to avoid false advertising
+- Check: `showTrialPromotion` computed property in `index.vue`
+
+**Functions**:
+```typescript
+isTrialActive(trialStartedAt) // Check if trial is valid
+getTrialStatus(trialStartedAt) // Get full trial status with days remaining
+calculateUserTrialDiscount(amount, trialStartedAt) // Calculate 50% discount
+getLungCommissionPercentage(normalRate, trialStartedAt) // Get 0% or normal rate
+```
+
 ### Featured Activities
 
 Promotional system for highlighting lungs, activities, and campaigns.
@@ -295,7 +333,9 @@ Firebase Authentication with Firestore user profiles.
 
 - **Plugin**: `app/plugins/firebase.client.ts` - initializes Firebase services
 - **Store**: `app/stores/auth.ts`
-- **Middleware**: `app/middleware/auth.ts` - protects routes
+- **Middleware**:
+  - `app/middleware/auth.ts` - protects routes (requires login)
+  - `app/middleware/admin.ts` - protects admin routes (requires role='admin')
 - **Roles**: `'user' | 'lung' | 'admin'` stored in Firestore `users` collection
 
 **Auth Flow**:
@@ -303,6 +343,14 @@ Firebase Authentication with Firestore user profiles.
 2. `syncUserProfile()` creates/updates Firestore user document
 3. User role determines accessible features
 4. Protected routes check `auth.ts` middleware
+5. Admin routes check `admin.ts` middleware (redirects non-admins to homepage)
+
+**Setting Admin Role**:
+To grant admin access, manually update the user document in Firestore:
+1. Go to Firebase Console → Firestore Database
+2. Navigate to `users/{userId}`
+3. Set field `role` to `'admin'`
+4. User must log out and log back in for changes to take effect
 
 ### State Management (Pinia Stores)
 
@@ -363,6 +411,12 @@ Firebase Authentication with Firestore user profiles.
 - `/admin/featured` - Manage featured items with analytics
 
 **Layout**: Admin pages use `layout: 'admin'` (sidebar navigation at `app/layouts/admin.vue`)
+
+**Security**: All admin pages use `middleware: 'admin'` which checks:
+1. User is authenticated
+2. User role is 'admin'
+3. If not admin → redirect to homepage
+4. Admin role must be set manually in Firestore
 
 ### Partner Application Flow
 
