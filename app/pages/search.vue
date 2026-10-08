@@ -38,7 +38,7 @@ const searchQuery = ref('')
 const selectedCategories = ref<string[]>([])
 const minPrice = ref<number>()
 const maxPrice = ref<number>()
-const selectedLocation = ref('กรุงเทพฯ')
+const selectedLocation = ref('') // Empty by default to show all
 const onlyAvailable = ref(false)
 const instantBookOnly = ref(false)
 
@@ -87,7 +87,7 @@ const clearFilters = () => {
   selectedCategories.value = []
   minPrice.value = undefined
   maxPrice.value = undefined
-  selectedLocation.value = 'กรุงเทพฯ'
+  selectedLocation.value = ''
   onlyAvailable.value = false
   instantBookOnly.value = false
 }
