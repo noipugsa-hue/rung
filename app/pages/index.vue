@@ -51,37 +51,40 @@ setSeo({
 })
 
 // Client-only store - avoid SSR issues
-let lungStore: ReturnType<typeof useLungStore> | null = null
-let authStore: ReturnType<typeof useAuthStore> | null = null
+const lungStore = ref<ReturnType<typeof useLungStore> | null>(null)
+const authStore = ref<ReturnType<typeof useAuthStore> | null>(null)
 const isClient = ref(false)
-const availableLungs = ref([])
-const featuredLungs = ref([])
 const loading = ref(false)
 
 onMounted(() => {
   isClient.value = true
-  lungStore = useLungStore()
-  authStore = useAuthStore()
-  lungStore.fetchLungs()
+  lungStore.value = useLungStore()
+  authStore.value = useAuthStore()
+  lungStore.value.fetchLungs()
 })
 
-// Watch for store changes
-watch(() => lungStore?.lungs || [], (lungs) => {
-  if (lungs) {
-    availableLungs.value = lungs.filter(l => l.available).slice(0, 8)
-    featuredLungs.value = lungs.slice(0, 4)
-  }
-}, { immediate: false })
+// Computed properties that react to store changes
+const availableLungs = computed(() => {
+  if (!lungStore.value) return []
+  const lungs = lungStore.value.lungs.filter(l => l.available).slice(0, 8)
+  console.log('🔄 availableLungs computed:', lungs.length, lungs)
+  return lungs
+})
 
-watch(() => lungStore?.loading || false, (newLoading) => {
+const featuredLungs = computed(() => {
+  if (!lungStore.value) return []
+  return lungStore.value.lungs.slice(0, 4)
+})
+
+watch(() => lungStore.value?.loading || false, (newLoading) => {
   loading.value = newLoading
 })
 
 // Check if trial promotion should be shown
 const showTrialPromotion = computed(() => {
-  if (!isClient.value || !authStore) return true // Show to guests
+  if (!isClient.value || !authStore.value) return true // Show to guests
 
-  const user = authStore.user
+  const user = authStore.value.user
   if (!user) return true // Show to non-logged-in users
 
   // If user is logged in, check trial status
