@@ -1,10 +1,19 @@
 <script setup lang="ts">
 import type { Lung } from '~/types'
 
-defineProps<{
+const props = defineProps<{
   lungs: Lung[]
   loading?: boolean
 }>()
+
+// Debug logging
+watchEffect(() => {
+  console.log('🎯 LungGrid render:', {
+    loading: props.loading,
+    lungsCount: props.lungs.length,
+    lungs: props.lungs
+  })
+})
 </script>
 
 <template>
