@@ -458,10 +458,13 @@ export const usePartnerApplicationStore = defineStore('partnerApplication', () =
         if (userSnap.exists()) {
           const userData = userSnap.data()
           console.log('🔍 Current user role:', userData.role)
+          console.log('🔍 Current user isAdmin:', userData.isAdmin)
           console.log('🔍 Current user email:', userData.email)
 
-          if (userData.role !== 'admin') {
-            throw new Error(`ไม่มีสิทธิ์เข้าถึง (role: ${userData.role}, ต้องเป็น 'admin')`)
+          // Check both role and isAdmin flag
+          const hasAdminAccess = userData.role === 'admin' || userData.isAdmin === true
+          if (!hasAdminAccess) {
+            throw new Error(`ไม่มีสิทธิ์เข้าถึง (role: ${userData.role}, isAdmin: ${userData.isAdmin})`)
           }
         }
       }
