@@ -50,28 +50,22 @@ setSeo({
   structuredData
 })
 
-// Client-only store - avoid SSR issues
-const lungStore = ref<ReturnType<typeof useLungStore> | null>(null)
-const authStore = ref<ReturnType<typeof useAuthStore> | null>(null)
+// Pinia stores are already reactive - use directly
+const lungStore = useLungStore()
+const authStore = useAuthStore()
 const isClient = ref(false)
-const loading = ref(false)
 
 onMounted(() => {
   isClient.value = true
-  lungStore.value = useLungStore()
-  authStore.value = useAuthStore()
-  lungStore.value.fetchLungs()
+  console.log('🚀 Mounting homepage, fetching lungs...')
+  lungStore.fetchLungs()
 })
 
 // Computed properties that react to store changes
 const availableLungs = computed(() => {
   console.log('🔄 availableLungs computed called')
-  if (!lungStore.value) {
-    console.log('⚠️ lungStore is null')
-    return []
-  }
-  console.log('🔍 lungStore.lungs.length:', lungStore.value.lungs.length)
-  const lungs = lungStore.value.lungs.filter(l => {
+  console.log('🔍 lungStore.lungs.length:', lungStore.lungs.length)
+  const lungs = lungStore.lungs.filter(l => {
     console.log(`  - Lung ${l.name}: available=${l.available}`)
     return l.available
   }).slice(0, 8)
@@ -80,19 +74,16 @@ const availableLungs = computed(() => {
 })
 
 const featuredLungs = computed(() => {
-  if (!lungStore.value) return []
-  return lungStore.value.lungs.slice(0, 4)
+  return lungStore.lungs.slice(0, 4)
 })
 
-watch(() => lungStore.value?.loading || false, (newLoading) => {
-  loading.value = newLoading
-})
+const loading = computed(() => lungStore.loading)
 
 // Check if trial promotion should be shown
 const showTrialPromotion = computed(() => {
-  if (!isClient.value || !authStore.value) return true // Show to guests
+  if (!isClient.value) return true // Show to guests
 
-  const user = authStore.value.user
+  const user = authStore.user
   if (!user) return true // Show to non-logged-in users
 
   // If user is logged in, check trial status
