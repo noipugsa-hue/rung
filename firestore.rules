@@ -40,8 +40,10 @@ service cloud.firestore {
 
     // Partner Applications
     match /partnerApplications/{applicationId} {
-      allow read: if request.auth != null &&
+      // Allow admin to list all applications, users can only get their own
+      allow get: if request.auth != null &&
         (request.auth.uid == resource.data.userId || isAdmin());
+      allow list: if request.auth != null && isAdmin();
       allow create: if request.auth != null;
       allow update: if request.auth != null &&
         (request.auth.uid == resource.data.userId || isAdmin());
