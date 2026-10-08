@@ -18,6 +18,7 @@ export const useLungStore = defineStore('lung', () => {
     loading.value = true
     error.value = null
     try {
+      console.log('🔍 Fetching lungs from Firestore...')
       const db = getFirestore()
       const lungsRef = collection(db, 'lungs')
       const q = query(lungsRef, orderBy('createdAt', 'desc'))
@@ -27,9 +28,16 @@ export const useLungStore = defineStore('lung', () => {
         id: doc.id,
         ...doc.data()
       } as Lung))
+
+      console.log(`✅ Fetched ${lungs.value.length} lungs from Firestore`)
+      if (lungs.value.length > 0) {
+        console.log('First lung:', lungs.value[0])
+      }
     } catch (e: any) {
       error.value = 'Failed to fetch lungs'
-      console.error('Fetch lungs error:', e)
+      console.error('❌ Fetch lungs error:', e)
+      console.error('Error code:', e.code)
+      console.error('Error message:', e.message)
     } finally {
       loading.value = false
     }
