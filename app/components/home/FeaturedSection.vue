@@ -51,7 +51,7 @@ async function handleClick(item: FeaturedItem) {
         </div>
 
         <NuxtLink
-          to="/featured"
+          to="/search"
           class="hidden sm:flex items-center gap-2 text-primary hover:text-dark transition-colors"
         >
           <span class="font-semibold">ดูทั้งหมด</span>
@@ -115,7 +115,7 @@ async function handleClick(item: FeaturedItem) {
       <!-- View All (Mobile) -->
       <div class="sm:hidden text-center mt-8">
         <NuxtLink
-          to="/featured"
+          to="/search"
           class="btn-outline inline-flex items-center gap-2"
         >
           <span>ดูทั้งหมด</span>

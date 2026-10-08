@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { Users, Clock, CheckCircle2, XCircle, AlertCircle, Eye, Trash2 } from 'lucide-vue-next'
+import { Users, Clock, CheckCircle2, XCircle, AlertCircle, Eye, Trash2, Wrench } from 'lucide-vue-next'
 import { usePartnerApplicationStore } from '~/stores/partnerApplication'
+import { useApplicationFixer } from '~/composables/useApplicationFixer'
+import { estimateDocumentSize, formatBytes } from '~/utils/document-size'
 import type { ApplicationStatus } from '~/types/application'
 
 definePageMeta({
@@ -9,9 +11,11 @@ definePageMeta({
 })
 
 const applicationStore = usePartnerApplicationStore()
+const { fixApplication } = useApplicationFixer()
 const router = useRouter()
 
 const selectedStatus = ref<ApplicationStatus | 'all'>('all')
+const fixing = ref<string | null>(null)
 
 // Load applications on mount
 onMounted(async () => {
@@ -76,6 +80,52 @@ function formatDate(dateString: string) {
 }
 
 const deleting = ref<string | null>(null)
+
+// Check if application is oversized
+function isOversized(app: any): boolean {
+  const size = estimateDocumentSize(app)
+  return size > 900000 // Over 900KB
+}
+
+// Get application size
+function getApplicationSize(app: any): string {
+  const size = estimateDocumentSize(app)
+  return formatBytes(size)
+}
+
+// Fix oversized application
+async function handleFixApplication(event: Event, applicationId: string) {
+  event.stopPropagation()
+
+  const confirmed = confirm(
+    'คุณต้องการแก้ไขเอกสารนี้หรือไม่?\n\n' +
+    'การแก้ไขจะ:\n' +
+    '- ลด metadata ของรูปภาพ\n' +
+    '- จำกัดรูปสูงสุด 8 รูป\n' +
+    '- ลดขนาดเอกสารให้อยู่ในขอบเขตที่ปลอดภัย'
+  )
+
+  if (!confirmed) return
+
+  fixing.value = applicationId
+
+  try {
+    const result = await fixApplication(applicationId)
+
+    if (result.success) {
+      alert(`✅ แก้ไขสำเร็จ!\n\n${result.message}`)
+      // Reload applications to show updated data
+      await applicationStore.fetchAllApplications()
+    } else {
+      alert(`❌ แก้ไขล้มเหลว\n\n${result.message}`)
+    }
+  } catch (error: any) {
+    console.error('Fix error:', error)
+    alert(`เกิดข้อผิดพลาด: ${error.message}`)
+  } finally {
+    fixing.value = null
+  }
+}
 
 async function handleDeleteApplication(applicationId: string, applicationName: string) {
   const confirmed = confirm(
@@ -195,6 +245,23 @@ async function handleDeleteApplication(applicationId: string, applicationName: s
                 <span v-else>
                   สร้าง: {{ formatDate(app.createdAt) }}
                 </span>
+                <span
+                  class="font-semibold"
+                  :class="isOversized(app) ? 'text-red-600' : 'text-gray-500'"
+                >
+                  📦 {{ getApplicationSize(app) }}
+                </span>
+              </div>
+
+              <!-- Oversized warning -->
+              <div v-if="isOversized(app)" class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-start gap-2">
+                  <AlertCircle :size="16" class="text-red-600 flex-shrink-0 mt-0.5" />
+                  <div class="text-xs text-red-700">
+                    <strong>⚠️ เอกสารมีขนาดใหญ่เกินไป!</strong>
+                    <p class="mt-1">กรุณาแก้ไขเอกสารก่อนอนุมัติ เพื่อหลีกเลี่ยงข้อผิดพลาดในการบันทึก</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -208,7 +275,19 @@ async function handleDeleteApplication(applicationId: string, applicationName: s
               </div>
 
               <!-- Action buttons -->
-              <div class="flex gap-2">
+              <div class="flex flex-wrap gap-2 justify-end">
+                <!-- Fix button (only show if oversized) -->
+                <button
+                  v-if="isOversized(app)"
+                  class="px-3 py-1.5 text-sm font-semibold rounded-lung border-2 border-orange-600 text-orange-600 hover:bg-orange-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                  @click="(e) => handleFixApplication(e, app.id)"
+                  :disabled="fixing === app.id"
+                  title="แก้ไขเอกสารที่มีปัญหา"
+                >
+                  <Wrench :size="16" />
+                  {{ fixing === app.id ? 'กำลังแก้ไข...' : '🔧 แก้ไข' }}
+                </button>
+
                 <!-- View button -->
                 <button
                   class="btn-outline btn-sm"

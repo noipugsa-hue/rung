@@ -1,8 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
 
-@import "tailwindcss/theme" layer(theme);
-@import "tailwindcss/preflight" layer(base);
-@import "tailwindcss/utilities" layer(utilities);
+@import "tailwindcss";
 
 @layer base {
   body {
@@ -308,6 +306,52 @@
 
   .hover-lift:hover {
     transform: translateY(-4px);
+  }
+
+  /* Image carousel animations */
+  @keyframes image-slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-image-slide {
+    animation: image-slide-in 0.4s ease-out;
+  }
+
+  /* Badge pulse animation */
+  @keyframes badge-pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  .animate-badge-pulse {
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+
+  /* Smooth crossfade for images */
+  .image-crossfade {
+    transition: opacity 0.5s ease-in-out;
+  }
+
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .lung-card-carousel {
+      animation: none !important;
+    }
+
+    .tier-badge {
+      transform: scale(1.1);
+    }
   }
 }
 

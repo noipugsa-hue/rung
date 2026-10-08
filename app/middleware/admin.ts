@@ -15,8 +15,8 @@ export default defineNuxtRouteMiddleware((to) => {
     })
   }
 
-  // Check if user is admin
-  if (authStore.user?.role !== 'admin') {
+  // Check if user is admin (either role is 'admin' OR isAdmin flag is true)
+  if (authStore.user?.role !== 'admin' && !authStore.user?.isAdmin) {
     // Not an admin, redirect to home page
     return navigateTo('/')
   }

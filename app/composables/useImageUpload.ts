@@ -210,13 +210,12 @@ export function useImageUpload() {
 
               const profileImage: ProfileImage = {
                 url: downloadURL,
-                filename: file.name,
-                storagePath: storagePath,
-                uploadedAt: new Date().toISOString(),
                 isPrimary: isPrimary,
                 order: order,
-                size: file.size,
-                dimensions: dimensions
+                // Optional metadata
+                filename: file.name,
+                storagePath: storagePath,
+                uploadedAt: new Date().toISOString()
               }
 
               isUploading.value = false

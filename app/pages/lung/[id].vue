@@ -10,7 +10,11 @@ import {
 } from 'lucide-vue-next'
 import { useLungStore } from '~/stores/lung'
 import { useFavoritesStore } from '~/stores/favorites'
+import { useAchievementStore } from '~/stores/achievement'
 import { formatBaht } from '~/utils/money'
+import ImageLightbox from '~/components/common/ImageLightbox.vue'
+import ProfileImageFrame from '~/components/common/ProfileImageFrame.vue'
+import TierBadge from '~/components/common/TierBadge.vue'
 
 definePageMeta({
   layout: 'default'
@@ -20,6 +24,7 @@ const route = useRoute()
 const router = useRouter()
 const lungStore = useLungStore()
 const favoritesStore = useFavoritesStore()
+const achievementStore = useAchievementStore()
 
 const lungId = route.params.id as string
 
@@ -30,11 +35,32 @@ onMounted(() => {
 const lung = computed(() => lungStore.currentLung)
 const isFavorited = computed(() => lung.value ? favoritesStore.isFavorite(lung.value.id) : false)
 
+// Lightbox state
+const showLightbox = ref(false)
+const lightboxStartIndex = ref(0)
+
+const openLightbox = (index: number) => {
+  lightboxStartIndex.value = index
+  showLightbox.value = true
+}
+
+// Fetch tier data
+const lungTier = ref<'Bronze' | 'Silver' | 'Gold' | 'Platinum' | null>(null)
+
 // Dynamic SEO based on lung data
 const { setSeo, getPersonSchema, getBreadcrumbSchema } = useSeo()
 
-watch(lung, (newLung) => {
+watch(lung, async (newLung) => {
   if (newLung) {
+    // Fetch tier for this lung's user
+    if (newLung.userId) {
+      const points = await achievementStore.getUserPoints(newLung.userId)
+      if (points) {
+        lungTier.value = points.tier
+      }
+    }
+
+    // Set SEO
     setSeo({
       title: `เช่าลุง ${newLung.name} - ${newLung.categories[0]} | LUNG`,
       description: `จองลุง ${newLung.name} อายุ ${newLung.age} ปี จาก ${newLung.location} สำหรับ ${newLung.categories.join(', ')} ${newLung.bio.substring(0, 100)}... ราคา ${formatBaht(newLung.pricePerHour)} ต่อชั่วโมง`,
@@ -87,29 +113,79 @@ const goToBooking = () => {
       </button>
     </div>
 
-    <!-- Gallery -->
+    <!-- Enhanced Gallery -->
     <div class="container-lung mb-8">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-lung-lg overflow-hidden">
-        <div class="aspect-[4/3] md:aspect-auto md:row-span-2">
-          <img
-            :src="lung.gallery[0]"
-            :alt="lung.name"
-            class="w-full h-full object-cover"
-          />
-        </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <!-- Primary image - larger with tier badge -->
         <div
-          v-for="(img, idx) in lung.gallery.slice(1, 3)"
+          class="col-span-2 md:row-span-2 relative group cursor-pointer"
+          @click="openLightbox(0)"
+        >
+          <ProfileImageFrame
+            :tier="lungTier"
+            :show-frame="!!lungTier"
+            aspect-ratio="4/3"
+          >
+            <img
+              :src="lung.gallery[0]"
+              :alt="lung.name"
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+
+            <!-- Gradient overlay on hover -->
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+
+            <!-- View icon on hover -->
+            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div class="w-16 h-16 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center">
+                <span class="text-2xl">👁️</span>
+              </div>
+            </div>
+
+            <!-- Tier badge overlay -->
+            <TierBadge
+              v-if="lungTier"
+              :tier="lungTier"
+              size="md"
+              position="top-right"
+            />
+          </ProfileImageFrame>
+        </div>
+
+        <!-- Additional images (show up to 6 more) -->
+        <div
+          v-for="(img, idx) in lung.gallery.slice(1, 7)"
           :key="idx"
-          class="aspect-[4/3] hidden md:block"
+          class="relative group cursor-pointer rounded-2xl overflow-hidden aspect-square hover:ring-2 hover:ring-primary transition-all"
+          @click="openLightbox(idx + 1)"
         >
           <img
             :src="img"
             :alt="`${lung.name} ${idx + 2}`"
-            class="w-full h-full object-cover"
+            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
+
+          <!-- Overlay -->
+          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+
+          <!-- Show remaining count on last image -->
+          <div
+            v-if="idx === 5 && lung.gallery.length > 7"
+            class="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-bold text-2xl"
+          >
+            +{{ lung.gallery.length - 7 }}
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Lightbox -->
+    <ImageLightbox
+      v-if="showLightbox"
+      :images="lung.gallery"
+      :initial-index="lightboxStartIndex"
+      @close="showLightbox = false"
+    />
 
     <div class="container-lung">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

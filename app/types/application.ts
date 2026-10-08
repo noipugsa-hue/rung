@@ -23,16 +23,13 @@ export interface DocumentUpload {
 
 export interface ProfileImage {
   url: string              // Firebase Storage URL
-  filename: string
-  storagePath: string      // path in Storage for deletion
-  uploadedAt: string
   isPrimary: boolean       // only one image should be true
   order: number            // display order in gallery
-  size: number             // bytes
-  dimensions: {
-    width: number
-    height: number
-  }
+
+  // Optional metadata - only store if needed
+  filename?: string
+  storagePath?: string     // path in Storage for deletion
+  uploadedAt?: string
 }
 
 export interface PersonalInfo {

@@ -1,5 +1,6 @@
 export interface Lung {
   id: string
+  userId?: string // Reference to the user who owns this lung profile
   name: string
   age: number
   avatar: string
@@ -17,9 +18,17 @@ export interface Lung {
   reviews: Review[]
   availability: AvailabilitySlot[]
   gallery: string[]
+  galleryMetadata?: {
+    primaryIndex: number  // Which image is the primary image (default 0)
+    lastUpdated: string
+  }
 
   // Trial system (7-day free trial: 0% commission)
   trialStartedAt?: string
+
+  // Timestamps
+  createdAt: string
+  updatedAt?: string
 }
 
 export interface Review {

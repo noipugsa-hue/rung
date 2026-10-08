@@ -164,8 +164,10 @@ export const useLungStore = defineStore('lung', () => {
 
       // 3. Create Lung profile with 7-day trial (0% commission)
       const lungId = generateId('LUNG')
+      const now = new Date().toISOString()
       const lungProfile: Lung = {
         id: lungId,
+        userId: application.userId, // Link to user profile
         name: `${application.personalInfo.firstName} ${application.personalInfo.lastName}`,
         age: calculateAge(application.personalInfo.dateOfBirth),
         avatar: primaryImage?.url || gallery[0] || '',
@@ -179,10 +181,17 @@ export const useLungStore = defineStore('lung', () => {
         experience: application.professionalInfo.experience,
         verified: true,
         available: true,
+        instantBook: false,
         reviews: [],
         availability: [],
         gallery: gallery,
-        trialStartedAt: initializeTrial() // Start 7-day trial with 0% commission
+        galleryMetadata: {
+          primaryIndex: 0,
+          lastUpdated: now
+        },
+        trialStartedAt: initializeTrial(), // Start 7-day trial with 0% commission
+        createdAt: now,
+        updatedAt: now
       }
 
       // 4. Save to Firestore
@@ -243,6 +252,55 @@ export const useLungStore = defineStore('lung', () => {
     }
   }
 
+  /**
+   * Update lung images (avatar, gallery, metadata)
+   */
+  async function updateLungImages(
+    lungId: string,
+    images: {
+      avatar: string
+      gallery: string[]
+      galleryMetadata?: { primaryIndex: number; lastUpdated: string }
+    }
+  ): Promise<void> {
+    if (!process.client) {
+      throw new Error('Firestore operations must run on client side')
+    }
+
+    try {
+      loading.value = true
+      const db = getFirestore()
+
+      const updates = {
+        avatar: images.avatar,
+        gallery: images.gallery,
+        galleryMetadata: images.galleryMetadata || {
+          primaryIndex: 0,
+          lastUpdated: new Date().toISOString()
+        }
+      }
+
+      const lungRef = doc(db, 'lungs', lungId)
+      await updateDoc(lungRef, updates)
+
+      // Update local state
+      const index = lungs.value.findIndex(l => l.id === lungId)
+      if (index !== -1) {
+        lungs.value[index] = { ...lungs.value[index], ...updates }
+      }
+
+      if (currentLung.value?.id === lungId) {
+        currentLung.value = { ...currentLung.value, ...updates }
+      }
+    } catch (err: any) {
+      console.error('Update lung images error:', err)
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     lungs,
     currentLung,
@@ -253,5 +311,6 @@ export const useLungStore = defineStore('lung', () => {
     searchLungs,
     createLungFromApplication,
     updateLung,
+    updateLungImages,
   }
 })

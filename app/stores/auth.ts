@@ -32,6 +32,8 @@ export interface User {
   email: string
   avatar: string
   role: 'user' | 'lung' | 'admin'
+  isAdmin?: boolean // Admin access flag (can be true even if role is 'lung')
+  lungId?: string // Reference to lung profile if user is a partner
   trialStartedAt?: string
   createdAt?: string
   updatedAt?: string
@@ -80,6 +82,7 @@ export const useAuthStore = defineStore('auth', () => {
           email: userData.email || fbUser.email || '',
           avatar,
           role: userData.role || 'user',
+          isAdmin: userData.isAdmin || false,
           trialStartedAt: userData.trialStartedAt
         } as User
       } else {

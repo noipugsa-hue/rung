@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LayoutDashboard, Users, DollarSign, FileText, TrendingUp, Settings, LogOut, Menu, X, UserCheck } from 'lucide-vue-next'
+import { LayoutDashboard, Users, DollarSign, FileText, TrendingUp, Settings, LogOut, Menu, X, UserCheck, Wrench } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 
 const router = useRouter()
@@ -49,7 +49,8 @@ const navItems = [
   { path: '/admin/bookings', label: 'การจอง', icon: FileText },
   { path: '/admin/payouts', label: 'จัดการการโอนเงิน', icon: TrendingUp },
   { path: '/admin/ledger', label: 'บัญชีแยกประเภท', icon: FileText },
-  { path: '/admin/commission', label: 'ตั้งค่าคอมมิชชั่น', icon: DollarSign }
+  { path: '/admin/commission', label: 'ตั้งค่าคอมมิชชั่น', icon: DollarSign },
+  { path: '/admin/fix-applications', label: '🔧 แก้ไขเอกสารที่มีปัญหา', icon: Wrench }
 ]
 </script>
 

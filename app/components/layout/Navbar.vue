@@ -147,8 +147,8 @@ onMounted(() => {
                   <span>บัญชีของฉัน</span>
                 </NuxtLink>
 
-                <!-- Admin Links -->
-                <template v-if="currentUser?.role === 'admin'">
+                <!-- Admin Links (show if role is 'admin' OR isAdmin flag is true) -->
+                <template v-if="currentUser?.role === 'admin' || currentUser?.isAdmin">
                   <div class="border-t border-gray-100 my-2" />
                   <NuxtLink
                     to="/admin/dashboard"
@@ -269,7 +269,7 @@ onMounted(() => {
         </NuxtLink>
 
         <!-- Admin Links (Mobile) -->
-        <template v-if="isAuthenticated && currentUser?.role === 'admin'">
+        <template v-if="isAuthenticated && (currentUser?.role === 'admin' || currentUser?.isAdmin)">
           <div class="border-t border-gray-100 my-3" />
           <NuxtLink
             to="/admin/dashboard"

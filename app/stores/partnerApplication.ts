@@ -25,6 +25,13 @@ import type {
   ProfileImage
 } from '~/types/application'
 import { generateId } from '~/utils/id-generator'
+import {
+  estimateDocumentSize,
+  isDocumentSizeSafe,
+  formatBytes,
+  validateProfileImagesCount,
+  optimizeProfileImages
+} from '~/utils/document-size'
 
 export const usePartnerApplicationStore = defineStore('partnerApplication', () => {
   const applications = ref<PartnerApplication[]>([])
@@ -172,8 +179,35 @@ export const usePartnerApplicationStore = defineStore('partnerApplication', () =
       }
 
       if (profileImages) {
-        updateData.profileImages = profileImages
+        // Validate image count
+        const validation = validateProfileImagesCount(profileImages)
+        if (!validation.valid) {
+          throw new Error(validation.message)
+        }
+
+        // Optimize images to reduce document size
+        updateData.profileImages = optimizeProfileImages(profileImages)
       }
+
+      // Check document size before saving
+      const proposedData = { ...currentData, ...updateData }
+      const sizeCheck = isDocumentSizeSafe(proposedData)
+
+      if (!sizeCheck.safe) {
+        console.error('❌ Document size exceeds safe limit:', {
+          currentSize: formatBytes(sizeCheck.size),
+          maxSize: formatBytes(sizeCheck.maxSize),
+          profileImagesCount: profileImages?.length || 0
+        })
+        throw new Error(
+          `ขนาดเอกสารเกินกำหนด (${formatBytes(sizeCheck.size)}). กรุณาลดจำนวนรูปภาพหรือลบรูปที่ไม่จำเป็น`
+        )
+      }
+
+      console.log('✅ Document size check passed:', {
+        size: formatBytes(sizeCheck.size),
+        imagesCount: profileImages?.length || 0
+      })
 
       await updateDoc(appRef, updateData)
 
