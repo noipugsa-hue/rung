@@ -65,9 +65,17 @@ onMounted(() => {
 
 // Computed properties that react to store changes
 const availableLungs = computed(() => {
-  if (!lungStore.value) return []
-  const lungs = lungStore.value.lungs.filter(l => l.available).slice(0, 8)
-  console.log('🔄 availableLungs computed:', lungs.length, lungs)
+  console.log('🔄 availableLungs computed called')
+  if (!lungStore.value) {
+    console.log('⚠️ lungStore is null')
+    return []
+  }
+  console.log('🔍 lungStore.lungs.length:', lungStore.value.lungs.length)
+  const lungs = lungStore.value.lungs.filter(l => {
+    console.log(`  - Lung ${l.name}: available=${l.available}`)
+    return l.available
+  }).slice(0, 8)
+  console.log('✅ availableLungs result:', lungs.length, lungs)
   return lungs
 })
 
