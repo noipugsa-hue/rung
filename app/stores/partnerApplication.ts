@@ -447,6 +447,25 @@ export const usePartnerApplicationStore = defineStore('partnerApplication', () =
     try {
       loading.value = true
       const db = getFirestore()
+
+      // Check current user role before querying
+      const { $firebase } = useNuxtApp()
+      const currentUser = $firebase.auth.currentUser
+
+      if (currentUser) {
+        const userRef = doc(db, 'users', currentUser.uid)
+        const userSnap = await getDoc(userRef)
+        if (userSnap.exists()) {
+          const userData = userSnap.data()
+          console.log('🔍 Current user role:', userData.role)
+          console.log('🔍 Current user email:', userData.email)
+
+          if (userData.role !== 'admin') {
+            throw new Error(`ไม่มีสิทธิ์เข้าถึง (role: ${userData.role}, ต้องเป็น 'admin')`)
+          }
+        }
+      }
+
       const applicationsRef = collection(db, 'partnerApplications')
       const q = query(applicationsRef, orderBy('updatedAt', 'desc'))
       const querySnapshot = await getDocs(q)
@@ -458,8 +477,11 @@ export const usePartnerApplicationStore = defineStore('partnerApplication', () =
 
       console.log(`✅ Fetched ${applications.value.length} applications from Firestore`)
     } catch (err: any) {
-      console.error('Fetch all applications error:', err)
+      console.error('❌ Fetch all applications error:', err)
+      console.error('Error code:', err.code)
+      console.error('Error message:', err.message)
       error.value = err.message
+      throw err
     } finally {
       loading.value = false
     }
