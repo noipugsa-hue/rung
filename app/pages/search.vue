@@ -58,6 +58,14 @@ onMounted(() => {
 
 const filteredLungs = computed(() => {
   if (!lungStore) return []
+
+  console.log('🔍 Search filters:', {
+    categories: selectedCategories.value,
+    location: selectedLocation.value,
+    minPrice: minPrice.value,
+    maxPrice: maxPrice.value
+  })
+
   let lungs = lungStore.searchLungs({
     categories: selectedCategories.value.length > 0 ? selectedCategories.value : undefined,
     location: selectedLocation.value || undefined,
@@ -65,6 +73,8 @@ const filteredLungs = computed(() => {
     maxPrice: maxPrice.value,
     available: onlyAvailable.value || undefined,
   })
+
+  console.log('✅ Filtered lungs:', lungs.length, lungs)
 
   // Client-side instant book filter
   if (instantBookOnly.value) {
